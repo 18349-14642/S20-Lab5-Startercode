@@ -1,4 +1,4 @@
-/** @file 349_lib.h
+/** @file 349_lib.h.h
  *
  *  @brief  Custom functions for user programs.
  *
@@ -51,7 +51,7 @@ intrinsic void wait_for_interrupt( void ) {
  * @brief       Pretends to do work until the given time is past.
  *              For grading.
  *
- * @param time  time at which to stop working
+ * @param time  time at which to stop "working"
  */
 void spin_until( uint32_t time );
 
@@ -59,7 +59,7 @@ void spin_until( uint32_t time );
  * @brief       Pretends that the thread is doing work for ms milliseconds.
  *              For grading.
  *
- * @param ms    milliseconds to work for
+ * @param ms    scheduler ticks to "work" for
  */
 void spin_wait( uint32_t ms );
 

@@ -62,7 +62,7 @@ def do_pid(position, k_p, k_d, bias):
     # speed, using thresholds on error, adding the I term, etc. 
     # - Setting a max speed can be useful to prevent browning out if the power
     #   supply cannot supply enough current
-    # - Setting a min speed can help the motor overcome friction near the target
+    # - Setting a min speed or using a bias can help the motor overcome friction near the target
 
     old_error = error
 
@@ -70,20 +70,17 @@ def do_pid(position, k_p, k_d, bias):
 
 def get_target_thread():
     global target
-    try:
-        while (True):
-            print("Input new target: ", end='')
-            try:
-                target = int(input()) & 0xFF;
-            except ValueError:
-                print("Error: Not an integer")
+    while (True):
+        print("Input new target: ", end='')
+        try:
+            target = int(input()) & 0xFF;
+        except ValueError:
+            print("Error: Not an integer")
 
-    except KeyboardInterrupt:
-        return
 
 def main(k_p, k_d, bias):
     spi = spi_init()
-    threading.Thread(target=get_target_thread,args=()).start()
+    threading.Thread(target=get_target_thread,args=(),daemon=True).start()
     
     speed = 0
     direction = 0
@@ -91,6 +88,7 @@ def main(k_p, k_d, bias):
         while True:
             # TODO:Use spi.xfer2 to send the message to the STM32,
             # and receive the position of the motor as a reply.
+            # Hint: How can you transfer both the speed and direction in 1 byte?
             
             # TODO: Update the speed and direction based on the new position
             # using the do_pid function

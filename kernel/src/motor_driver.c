@@ -35,6 +35,7 @@ void motor_init(gpio_port port_a, gpio_port port_b, gpio_port port_pwm, uint32_t
   gpio_init(PORT_B, CHANNEL_B, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_HIGH, PUPD_PULL_DOWN, ALT0);
   gpio_init(PORT_PWM, CHANNEL_PWM, MODE_ALT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_VERY_HIGH, PUPD_PULL_DOWN, alt_timer);
   encoder_init();
+  // IS_COMP = 1; // Uncomment this if the PWM pin you are using has an N at the end of it. Check the Arduino pin layout.
   start_pwm_timer(PWM_PERIOD, 0, TIMER, TIMER_CHANNEL);
 }
 

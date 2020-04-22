@@ -19,18 +19,6 @@ define armex
   x/i *(int*)($armex_base+24)
 end
 
-define examine_stack
-  set $i = 0
-  while $i < $arg0
-    printf "stack[%d] : 0x%08x : 0x%08x\n",$i,($armex_base + $i * 4) , *(int*)($armex_base + $i * 4)
-    set $i = $i + 1
-  end
-end
-
-define reset
-  monitor reset halt
-end
-
 define examine_hard_fault
   set $HFSR = *(int*)(0xE000ED2C)
   set $CFSR = *(int*)(0xE000ED28)
@@ -40,6 +28,10 @@ define examine_hard_fault
   if (($CFSR >> 18) & 0x1)
     printf "Invalid PC load UsageFault, caused by an invalid PC load by EXC_RETURN\n"
   end
+end
+
+define r
+  reset
 end
 
 target remote localhost:3333

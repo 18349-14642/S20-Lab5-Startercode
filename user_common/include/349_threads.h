@@ -39,17 +39,18 @@ int thread_init( uint32_t max_threads,
                  uint32_t max_mutexes );
 
 /**
- * @brief      Create a new thread running the given function
+ * @brief      Create a new thread running the given function. The thread will
+ *             not be created if the UB test fails, and in that case this function
+ *             will return an error.
  *
  * @param      fn     Pointer to the function to run in the new thread.
  * @param      prio   Priority of this thread. Lower number are higher
  *                    priority.
- * @param      C      Real time execution time (ms).
- * @param      T      Real time task period (ms).
- * @param      vargp  Pointer to an argument.
+ * @param      C      Real time execution time (scheduler ticks).
+ * @param      T      Real time task period (scheduler ticks).
+ * @param      vargp  Argument for thread function (usually a pointer).
  *
- * @return     0 on success or -1 on failure. Runs ub test for new task set
- *             will fail if over ub test.
+ * @return     0 on success or -1 on failure
  */
 int thread_create( void ( *fn )( void *vargp ),
                    uint32_t prio,
@@ -58,14 +59,14 @@ int thread_create( void ( *fn )( void *vargp ),
                    void *vargp );
 
 /**
- * @brief      Allow the kernel to start running the added task set.
+ * @brief      Allow the kernel to start running the thread set.
  *
- *             This function should enable IRQs and thus enable your
- *             scheduler. The kernel will test that a task set with this new
- *             task is scheduleable before running and may return an error if
- *             this is not the case.
+ *             This function should enable SysTick and thus enable your
+ *             scheduler. It will not return immediately unless there is an error.
+ *			   It may eventually return successfully if all thread functions are
+ *   		   completed or killed.
  *
- * @param[in]  freq  The frequency
+ * @param      frequency  Frequency (Hz) of context swaps.
  *
  * @return     0 on success or -1 on failure
  */
@@ -87,7 +88,7 @@ uint32_t get_priority( void );
 
 /**
  * @brief      Gets the total elapsed time for the thread (since its first
- *             ever period.)
+ *             ever period).
  *
  * @return     The time in ticks.
  */
@@ -101,9 +102,7 @@ void wait_until_next_period( void );
 /**
  * @brief      Type definition for mutex, opaque to user
  */
-typedef struct {
-  char unused;
-} mutex_t;
+typedef void mutex_t;
 
 /**
  * @brief      Initialize a mutex

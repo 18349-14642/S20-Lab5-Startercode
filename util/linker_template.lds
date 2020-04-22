@@ -6,7 +6,7 @@
  * 0x1ffff000 - 0x1ffff7ff - Boot firmware in system memory
  * 0x1ffff800 - 0x1fffffff - option bytes
  * 0x20000000 - 0x20018000 - SRAM (96k)
- * 0x40000000 - 0x40023400 - peripherals 
+ * 0x40000000 - 0x40023400 - peripherals
  */
 
 SECTIONS
@@ -15,60 +15,64 @@ SECTIONS
   /*Toggle permissions between kernel_text_start and kernel_text_end*/
   .kernel_text 0x08000000 :
   {
-    _kernel_text_start = .;
     _ivt_start = .;
     KEEP(*(.ivt))
+    _ivt_end = .;
+    _kernel_text_start = .;
     <K_OBJ_DIR>/*.o (.text*) /*END REGION*/
-    . = ALIGN(2048); /* Align to the closest 2-byte boundary*/
     _kernel_text_end = .;
   }
 
-  .app_text _user_text_start :
+  . = ALIGN(16*1024); /* Align to the closest 16K-byte boundary*/
+
+  .app_text :
   {
-    _user_text_start = .;
+    _swi_stub_start = .;
     KEEP(*(.swi_stub))
+    _swi_stub_end = .;
+    _user_text_start = .;
     <U_OBJ_DIR>/*.o (.text*) /*END REGION*/
-    . = ALIGN(2048); /* Align to the closest 2-byte boundary*/
     _user_text_end = .;
   }
 
-  . = ALIGN(2048);
 
-  .rodata : 
-  { 
-    _k_rodata = .; 
+  .rodata :
+  {
+    /*Ensures that app data is 16kb aligned*/
+    . = ALIGN(16*1024);
+    _k_rodata = .;
     <K_OBJ_DIR>/*.o (.rodata*); /*END REGION*/
-    . = ALIGN(512);
+    /*Ensures that u rodata is 2KB aligned*/
+    . = ALIGN(2*1024);
     _u_rodata = .;
     <U_OBJ_DIR>/*.o (.rodata*); /*END REGION*/
     *(.rodata);
-    . = ALIGN(512);
     _u_erodata = .;
   }
-  
-  . = ALIGN(8);
+
+  . = ALIGN(2*1024);
   _erodata = . ;
 
   .data 0x20000000 : AT ( _erodata )
   {
     _k_data = .;
     <K_OBJ_DIR>/*.o (.data*); /*END REGION*/
-    . = ALIGN(512);
-    _u_data = .; 
+    . = ALIGN(1*1024);
+    _u_data = .;
     <U_OBJ_DIR>/*.o (.data*); /*END REGION*/
     *(.data);
-    . = ALIGN(512);
     _u_edata = .;
+    . = ALIGN(1*1024);
   }
 
-  .bss ALIGN(512) : 
+  .bss ALIGN(1024) :
   {
     _bss_start = .;
     _k_bss = .;
     <K_OBJ_DIR>/*.o (.bss*); /*END REGION*/
     <K_OBJ_DIR>/*.o (COMMON*); /*END REGION*/
-    . = ALIGN(512);
-    _u_ebss = .;
+    . = ALIGN(1024);
+    _u_bss = .;
     <U_OBJ_DIR>/*.o (.bss*); /*END REGION*/
     <U_OBJ_DIR>/*.o (COMMON*); /*END REGION*/
     *(.bss) *(COMMON) ;
@@ -79,19 +83,35 @@ SECTIONS
   _bss_size = ((_u_ebss) - (_k_bss));
   _data_size = ((_u_edata) - (_k_data));
 
-  . = ALIGN(1024);
-  . = . + 0x800;  /* 2kB of msp stack */
-  __msp_stack_top = .;
-  __kheap_low = .; /* for k_malloc */
-  . = . + 0x10000; /* 70KB of k_heap */
-  __kheap_top = .; /* for k_malloc */
-  
-  . = ALIGN(16*1024);
+
+  . = ALIGN(8*1024);
+
   __heap_low = .; /* for _sbrk */
-  . = . + 0x3800; /* 14KB of heap */
+  . = . + (4*1024); /* 4K of user heap */
   __heap_top = .; /* for _sbrk */
-  . = . + 0x800;  /* 2kB processor memory */
+
+  __psp_stack_bottom = .;
+  . = . + (2*1024);  /* 2kB process stack */
   __psp_stack_top = .;
+
+  __msp_stack_bottom = .;
+  . = . + (2*1024);  /* 2kB of main stack */
+  __msp_stack_top = .;
+
+  /* unused space if you need it for very large kernel data structures */
+  __kheap_low_0 = .; 
+  . = . + (8*1024); /* 8K of space */
+  __kheap_top_0 = .;
+
+  . = ALIGN(32*1024);
+  __thread_u_stacks_low = .; /* for thread user stacks */
+  . = . + (32*1024); /* 32K of space */
+  __thread_u_stacks_top = .; /* for thread user stacks */
+
+  __thread_k_stacks_low = .; /* for thread kernel stacks */
+  . = . + (32*1024); /* 32K of space */
+  __thread_k_stacks_top = .; /* for thread kernel stacks */
+
 
   end = .;
 }
